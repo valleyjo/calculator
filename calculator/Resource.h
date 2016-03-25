@@ -23,6 +23,17 @@
 #define IDC_SUB     1001
 #define IDC_MULT    1002
 #define IDC_DIV     1003
+#define IDC_RESULT  1004
+#define IDC_0       1005
+#define IDC_1       1006
+#define IDC_2       1007
+#define IDC_3       1008
+#define IDC_4       1009
+#define IDC_5       1010
+#define IDC_6       1011
+#define IDC_7       1012
+#define IDC_8       1013
+#define IDC_9       1014
 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

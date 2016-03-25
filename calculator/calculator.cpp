@@ -100,7 +100,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     hInst = hInstance; // Store instance handle in our global variable
 
     HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+        CW_USEDEFAULT, 0, 300, 400, nullptr, nullptr, hInstance, nullptr);
 
     if (!hWnd)
     {
@@ -128,14 +128,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CREATE: {
+
+        // alexval_todo remove magic numbers here and make things realitive
+
+        // ROW 1 - numerical display
+        CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"0", WS_CHILD | WS_VISIBLE | ES_READONLY,
+            10, 10, 250, 20, hWnd, (HMENU)IDC_RESULT, GetModuleHandle(NULL), NULL);
+        // SendMessage(hEdit,WM_SETTEXT,NULL,(LPARAM)"Insert text here..."); // update display text
+
+        // ROW 2 - operation buttons
         CreateWindowEx(NULL, L"BUTTON", L"+", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            10, 10, 40, 40, hWnd, (HMENU)IDC_ADD, GetModuleHandle(NULL), NULL);
+            10, 50, 40, 40, hWnd, (HMENU)IDC_ADD, GetModuleHandle(NULL), NULL);
         CreateWindowEx(NULL, L"BUTTON", L"-", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
-            60, 10, 40, 40, hWnd, (HMENU)IDC_SUB, GetModuleHandle(NULL), NULL);
+            60, 50, 40, 40, hWnd, (HMENU)IDC_SUB, GetModuleHandle(NULL), NULL);
         CreateWindowEx(NULL, L"BUTTON", L"*", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
-            110, 10, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
+            110, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
         CreateWindowEx(NULL, L"BUTTON", L"/", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
-            160, 10, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
+            160, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
+
+        // ROW 3 - numbers 7, 8 & 9
+        CreateWindowEx(NULL, L"BUTTON", L"7", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            10, 100, 40, 40, hWnd, (HMENU)IDC_7, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"8", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            60, 100, 40, 40, hWnd, (HMENU)IDC_8, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"9", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            110, 100, 40, 40, hWnd, (HMENU)IDC_9, GetModuleHandle(NULL), NULL);
+
+        // ROW 4 - numbers 4, 5 & 6
+        CreateWindowEx(NULL, L"BUTTON", L"4", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            10, 150, 40, 40, hWnd, (HMENU)IDC_4, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"5", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            60, 150, 40, 40, hWnd, (HMENU)IDC_5, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"6", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            110, 150, 40, 40, hWnd, (HMENU)IDC_6, GetModuleHandle(NULL), NULL);
+
+        // ROW 5 - numbers 1, 2 & 3
+        CreateWindowEx(NULL, L"BUTTON", L"1", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            10, 200, 40, 40, hWnd, (HMENU)IDC_1, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"2", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            60, 200, 40, 40, hWnd, (HMENU)IDC_2, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"3", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            110, 200, 40, 40, hWnd, (HMENU)IDC_3, GetModuleHandle(NULL), NULL);
     }
 
     case WM_COMMAND:
