@@ -19,6 +19,11 @@
 #endif
 // Next default values for new objects
 //
+#define IDC_ADD     1000
+#define IDC_SUB     1001
+#define IDC_MULT    1002
+#define IDC_DIV     1003
+
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 
