@@ -34,6 +34,7 @@
 #define IDC_7       1012
 #define IDC_8       1013
 #define IDC_9       1014
+#define IDC_EQ      1015
 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

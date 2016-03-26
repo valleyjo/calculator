@@ -3,15 +3,19 @@
 
 #include "stdafx.h"
 #include "calculator.h"
+#include "strsafe.h"
 
 #define MAX_LOADSTRING 100
-
-const int BTNBORDER = 10;
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+WCHAR szResultDisplay[50] = L"";                // text of the display result
+HWND hWndDisplayResult;                         // handle to the display result
+int displayNumber;                              // internal integer representation of display result
+int opperand;                                   // the number to be used in the equation
+HMENU operation;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -57,8 +61,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int)msg.wParam;
 }
 
-
-
 //
 //  FUNCTION: MyRegisterClass()
 //
@@ -99,8 +101,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     hInst = hInstance; // Store instance handle in our global variable
 
-    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, 300, 400, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU,
+        CW_USEDEFAULT, 0, 230, 320, nullptr, nullptr, hInstance, nullptr);
 
     if (!hWnd)
     {
@@ -118,6 +120,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //  PURPOSE:  Processes messages for the main window.
 //
+//  WM_CREATE   - initialize all the buttons
 //  WM_COMMAND  - process the application menu
 //  WM_PAINT    - Paint the main window
 //  WM_DESTROY  - post a quit message and return
@@ -132,8 +135,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // alexval_todo remove magic numbers here and make things realitive
 
         // ROW 1 - numerical display
-        CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"0", WS_CHILD | WS_VISIBLE | ES_READONLY,
-            10, 10, 250, 20, hWnd, (HMENU)IDC_RESULT, GetModuleHandle(NULL), NULL);
+        hWndDisplayResult = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"0", WS_CHILD | WS_VISIBLE | ES_READONLY,
+            10, 10, 190, 20, hWnd, (HMENU)IDC_RESULT, GetModuleHandle(NULL), NULL);
         // SendMessage(hEdit,WM_SETTEXT,NULL,(LPARAM)"Insert text here..."); // update display text
 
         // ROW 2 - operation buttons
@@ -169,6 +172,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             60, 200, 40, 40, hWnd, (HMENU)IDC_2, GetModuleHandle(NULL), NULL);
         CreateWindowEx(NULL, L"BUTTON", L"3", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
             110, 200, 40, 40, hWnd, (HMENU)IDC_3, GetModuleHandle(NULL), NULL);
+
+        CreateWindowEx(NULL, L"BUTTON", L"=", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+            160, 100, 40, 140, hWnd, (HMENU)IDC_EQ, GetModuleHandle(NULL), NULL);
     }
 
     case WM_COMMAND:
@@ -184,10 +190,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DestroyWindow(hWnd);
             break;
         case IDC_ADD:
+            opperand = displayNumber;
+            // alexval_todo reset display text and set an operand to be executed when equals is pressed
+            break;
+        case IDC_SUB:
+            break;
+        case IDC_MULT:
+            break;
+        case IDC_DIV:
+            break;
+        case IDC_0:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"0");
+            break;
+        case IDC_1:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"1");
+            break;
+        case IDC_2:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"2");
+            break;
+        case IDC_3:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"3");
+            break;
+        case IDC_4:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"4");
+            break;
+        case IDC_5:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"5");
+            break;
+        case IDC_6:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"6");
+            break;
+        case IDC_7:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"7");
+            break;
+        case IDC_8:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"8");
+            break;
+        case IDC_9:
+            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"9");
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
+
+        // update the internal integer representation of the display result
+        displayNumber = _wtoi(szResultDisplay);
+        // update the display text in all cases
+        SendMessage(hWndDisplayResult,WM_SETTEXT,NULL,(LPARAM)szResultDisplay); // update display text
     }
     break;
     case WM_PAINT:
