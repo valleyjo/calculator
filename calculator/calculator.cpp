@@ -15,13 +15,15 @@ WCHAR szResultDisplay[50] = L"";                // text of the display result
 HWND hWndDisplayResult;                         // handle to the display result
 int displayNumber;                              // internal integer representation of display result
 int opperand;                                   // the number to be used in the equation
-HMENU operation;
+int operation = 0;
+int total = 0;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void                OperationSelected(int);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -142,38 +144,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // ROW 2 - operation buttons
         CreateWindowEx(NULL, L"BUTTON", L"+", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             10, 50, 40, 40, hWnd, (HMENU)IDC_ADD, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"-", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"-", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             60, 50, 40, 40, hWnd, (HMENU)IDC_SUB, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"*", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"*", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"/", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"/", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             160, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
 
         // ROW 3 - numbers 7, 8 & 9
         CreateWindowEx(NULL, L"BUTTON", L"7", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             10, 100, 40, 40, hWnd, (HMENU)IDC_7, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"8", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"8", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             60, 100, 40, 40, hWnd, (HMENU)IDC_8, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"9", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"9", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 100, 40, 40, hWnd, (HMENU)IDC_9, GetModuleHandle(NULL), NULL);
 
         // ROW 4 - numbers 4, 5 & 6
         CreateWindowEx(NULL, L"BUTTON", L"4", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             10, 150, 40, 40, hWnd, (HMENU)IDC_4, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"5", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"5", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             60, 150, 40, 40, hWnd, (HMENU)IDC_5, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"6", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"6", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 150, 40, 40, hWnd, (HMENU)IDC_6, GetModuleHandle(NULL), NULL);
 
         // ROW 5 - numbers 1, 2 & 3
         CreateWindowEx(NULL, L"BUTTON", L"1", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             10, 200, 40, 40, hWnd, (HMENU)IDC_1, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"2", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"2", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             60, 200, 40, 40, hWnd, (HMENU)IDC_2, GetModuleHandle(NULL), NULL);
-        CreateWindowEx(NULL, L"BUTTON", L"3", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"3", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 200, 40, 40, hWnd, (HMENU)IDC_3, GetModuleHandle(NULL), NULL);
 
-        CreateWindowEx(NULL, L"BUTTON", L"=", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 
+        CreateWindowEx(NULL, L"BUTTON", L"=", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             160, 100, 40, 140, hWnd, (HMENU)IDC_EQ, GetModuleHandle(NULL), NULL);
     }
 
@@ -190,7 +192,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DestroyWindow(hWnd);
             break;
         case IDC_ADD:
-            opperand = displayNumber;
+            OperationSelected(IDC_ADD);
+
             // alexval_todo reset display text and set an operand to be executed when equals is pressed
             break;
         case IDC_SUB:
@@ -203,6 +206,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"0");
             break;
         case IDC_1:
+            if (operation != 0) {
+                szResultDisplay[0] = '\0';
+            }
             StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"1");
             break;
         case IDC_2:
@@ -236,7 +242,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // update the internal integer representation of the display result
         displayNumber = _wtoi(szResultDisplay);
         // update the display text in all cases
-        SendMessage(hWndDisplayResult,WM_SETTEXT,NULL,(LPARAM)szResultDisplay); // update display text
+        SendMessage(hWndDisplayResult, WM_SETTEXT, NULL, (LPARAM)szResultDisplay); // update display text
     }
     break;
     case WM_PAINT:
@@ -274,4 +280,35 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void OperationSelected(int op) {
+    if (operation == 0) {
+        operation = op;
+        total = displayNumber;
+    }
+
+    if (op == IDC_EQ) {
+        switch (operation) {
+        case IDC_ADD:
+            total += displayNumber;
+            break;
+        case IDC_SUB:
+            total -= displayNumber;
+            break;
+        case IDC_MULT:
+            total *= displayNumber;
+            break;
+        case IDC_DIV:
+            total /= displayNumber;
+            break;
+        default:
+            break;
+        }
+        _itow_s(total, szResultDisplay, 10);
+        opperand = 0;
+        operation = -1;
+    }
+
+    displayNumber = total;
 }
