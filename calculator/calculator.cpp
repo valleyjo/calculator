@@ -11,19 +11,22 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-WCHAR szResultDisplay[50] = L"";                // text of the display result
 HWND hWndDisplayResult;                         // handle to the display result
-int displayNumber;                              // internal integer representation of display result
-int opperand;                                   // the number to be used in the equation
-int operation = 0;
-int total = 0;
+
+wstring resultDisplay = L"";                    // text of the display result
+int operand;                                    // the number to be used in the equation
+int operation = 0;                              // operation selected by the user
+int runningTotal = 0;                           // the running total is used as the left most equation value
+bool fSetOperand = false;                       // state flag. used to indicate if user input is setting the running total or operand
+bool fResetOperand = false;                     // state flag. indicate that the display number should be re-entered
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-void                OperationSelected(int);
+void                PerformOperation(int);
+void                NumericalInput(wstring);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -104,7 +107,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     hInst = hInstance; // Store instance handle in our global variable
 
     HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU,
-        CW_USEDEFAULT, 0, 230, 320, nullptr, nullptr, hInstance, nullptr);
+        CW_USEDEFAULT, 0, 230, 360, nullptr, nullptr, hInstance, nullptr);
 
     if (!hWnd)
     {
@@ -149,7 +152,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         CreateWindowEx(NULL, L"BUTTON", L"*", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
         CreateWindowEx(NULL, L"BUTTON", L"/", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            160, 50, 40, 40, hWnd, (HMENU)IDC_MULT, GetModuleHandle(NULL), NULL);
+            160, 50, 40, 40, hWnd, (HMENU)IDC_DIV, GetModuleHandle(NULL), NULL);
 
         // ROW 3 - numbers 7, 8 & 9
         CreateWindowEx(NULL, L"BUTTON", L"7", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
@@ -175,6 +178,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         CreateWindowEx(NULL, L"BUTTON", L"3", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             110, 200, 40, 40, hWnd, (HMENU)IDC_3, GetModuleHandle(NULL), NULL);
 
+        // ROW 6 - clear, number 0, and +/-
+        CreateWindowEx(NULL, L"BUTTON", L"clear", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            10, 250, 40, 40, hWnd, (HMENU)IDC_CLEAR, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"0", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            60, 250, 40, 40, hWnd, (HMENU)IDC_0, GetModuleHandle(NULL), NULL);
+        CreateWindowEx(NULL, L"BUTTON", L"+/-", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            110, 250, 40, 40, hWnd, (HMENU)IDC_PLUS_MINUS, GetModuleHandle(NULL), NULL);
+
         CreateWindowEx(NULL, L"BUTTON", L"=", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             160, 100, 40, 140, hWnd, (HMENU)IDC_EQ, GetModuleHandle(NULL), NULL);
     }
@@ -192,57 +203,70 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DestroyWindow(hWnd);
             break;
         case IDC_ADD:
-            OperationSelected(IDC_ADD);
-
-            // alexval_todo reset display text and set an operand to be executed when equals is pressed
-            break;
         case IDC_SUB:
-            break;
         case IDC_MULT:
-            break;
         case IDC_DIV:
+        case IDC_EQ:
+        case IDC_PLUS_MINUS:
+            PerformOperation(wmId);
             break;
         case IDC_0:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"0");
+            NumericalInput(STR_0);
             break;
         case IDC_1:
-            if (operation != 0) {
-                szResultDisplay[0] = '\0';
-            }
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"1");
+            NumericalInput(STR_1);
             break;
         case IDC_2:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"2");
+            NumericalInput(STR_2);
             break;
         case IDC_3:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"3");
+            NumericalInput(STR_3);
             break;
         case IDC_4:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"4");
+            NumericalInput(STR_4);
             break;
         case IDC_5:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"5");
+            NumericalInput(STR_5);
             break;
         case IDC_6:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"6");
+            NumericalInput(STR_6);
             break;
         case IDC_7:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"7");
+            NumericalInput(STR_7);
             break;
         case IDC_8:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"8");
+            NumericalInput(STR_8);
             break;
         case IDC_9:
-            StringCchCatW(szResultDisplay, sizeof(szResultDisplay), L"9");
+            NumericalInput(STR_9);
+            break;
+        case IDC_CLEAR:
+            fResetOperand = false;
+            fSetOperand = false;
+            operation = 0;
+            runningTotal = 0;
+            resultDisplay = L"";
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
 
-        // update the internal integer representation of the display result
-        displayNumber = _wtoi(szResultDisplay);
+        // user pressed an operation button. Meaning we display the old value until new input is recieved for operand 2
+        if (fResetOperand) {
+            resultDisplay = to_wstring(runningTotal);
+        }
+        // user input is setting the value of the operand
+        else if (fSetOperand) {
+            operand = _wtoi(resultDisplay.c_str());
+            resultDisplay = to_wstring(operand);
+        }
+        else {
+            runningTotal = _wtoi(resultDisplay.c_str());
+            resultDisplay = to_wstring(runningTotal);
+        }
+
         // update the display text in all cases
-        SendMessage(hWndDisplayResult, WM_SETTEXT, NULL, (LPARAM)szResultDisplay); // update display text
+        SendMessage(hWndDisplayResult, WM_SETTEXT, NULL, (LPARAM)resultDisplay.c_str());
     }
     break;
     case WM_PAINT:
@@ -282,33 +306,50 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-void OperationSelected(int op) {
+void NumericalInput(wstring num) {
+    if (fResetOperand) {
+        resultDisplay = L"";
+        fResetOperand = false;
+    }
+    resultDisplay.append(num);
+}
+
+void PerformOperation(int op) {
+    // the plus minus operator is a special case.
+    if (op == IDC_PLUS_MINUS) {
+        runningTotal *= -1;
+        return;
+    }
+
+    int displayNumber = _wtoi(resultDisplay.c_str()); // integer representation of what is in the edit box
+
+    // no operation is set previously
+    // set the operation to perform and save contents of the edit box as the running total AKA operand 1
     if (operation == 0) {
         operation = op;
-        total = displayNumber;
+        runningTotal = displayNumber;   // store the display number into the first operand
+        fSetOperand = true;             // enter the state where we set the second operand
     }
-
-    if (op == IDC_EQ) {
+    else {
         switch (operation) {
         case IDC_ADD:
-            total += displayNumber;
+            runningTotal += displayNumber;
             break;
         case IDC_SUB:
-            total -= displayNumber;
+            runningTotal -= displayNumber;
             break;
         case IDC_MULT:
-            total *= displayNumber;
+            runningTotal *= displayNumber;
             break;
         case IDC_DIV:
-            total /= displayNumber;
+            runningTotal /= displayNumber;
             break;
-        default:
+        case IDC_EQ:
+            operation = 0;
             break;
         }
-        _itow_s(total, szResultDisplay, 10);
-        opperand = 0;
-        operation = -1;
+        operation = op; // set operation for the next time around
     }
 
-    displayNumber = total;
+    fResetOperand = true;
 }
